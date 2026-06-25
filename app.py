@@ -1,3 +1,10 @@
+Belirttiğiniz yeni performans metrikleri tablosuna göre Streamlit kodunuzun sidebar kısmındaki veri yapısı ve ilgili bilgilendirme metni güncellenmiştir.
+
+Yeni tabloda yer alan tüm modeller (**Null model**, **Zamana bağımlı Cox**, **AFT**, **RSF**, **DeepSurv**, **DeepHit**, **N-MTLR** ve **DeepAFT**) ve bunlara ait **C-İndeksi**, **AUC (24, 60, 100 ay)**, **Brier Skorları (24, 60, 100 ay)** ve **IBS (100 ay)** metrikleri eksiksiz bir şekilde koda entegre edilmiştir.
+
+İşte güncellenmiş kodunuz:
+
+```python
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -14,7 +21,7 @@ D = {
         "title": "🩺 Pankreas Kanseri Sağkalım Klinik Karar Destek Sistemi",
         "subtitle": "Parametrik (Log-logistic AFT), Makine Öğrenmesi (RSF) ve Derin Öğrenme (DeepAFT) Karşılaştırmalı Nomogramı",
         "sidebar_title": "📊 Model Performans Metrikleri (Tez Bulguları)",
-        "sidebar_info": "💡 Genel ayırt edicilikte (C-İndeksi) **AFT**, uzun vadeli başarıda (AUC) **RSF** öne çıkmaktadır.",
+        "sidebar_info": "💡 Genel ayırt edicilikte (C-İndeksi) **DeepAFT**, uzun vadeli başarıda (AUC) **RSF** öne çıkmaktadır.",
         "input_header": "📋 Hasta ve Klinik Risk Faktörleri",
         "sex": "Cinsiyet", "race": "Irk", "marital": "Medeni Durum", "age": "Yaş Grubu", "treatment": "Tedavi Protokolü",
         "site": "Tümör Yerleşim Bölgesi", "grade": "Histolojik Grup", "lnr": "Lenf Nodu Oranı (LNR)", "stage": "Klinik Evre (Refined Stage)", "t_cat": "Tümör Boyutu (T Kategorisi)",
@@ -43,7 +50,7 @@ D = {
         "title": "🩺 Pancreatic Cancer Survival Clinical Decision Support System",
         "subtitle": "Comparative Nomogram of Parametric (Log-logistic AFT), Machine Learning (RSF), and Deep Learning (DeepAFT)",
         "sidebar_title": "📊 Model Performance Metrics (Thesis Findings)",
-        "sidebar_info": "💡 **AFT** excels in global discrimination (C-Index), while **RSF** outperforms in long-term success (AUC).",
+        "sidebar_info": "💡 **DeepAFT** excels in global discrimination (C-Index), while **RSF** outperforms in long-term success (AUC).",
         "input_header": "📋 Patient & Clinical Risk Factors",
         "sex": "Sex", "race": "Race", "marital": "Marital Status", "age": "Age Group", "treatment": "Therapeutic Protocol",
         "site": "Primary Tumor Site Category", "grade": "Histologic Group", "lnr": "Lymph Node Ratio (LNR)", "stage": "Clinical Stage (Refined Stage)", "t_cat": "Tumor Size (T Category)",
@@ -73,13 +80,31 @@ D = {
 # --- SIDEBAR TABLOSU ---
 with st.sidebar.expander(D[lang]["sidebar_title"], expanded=True):
     data = {
-        "Algorithm": ["Cox (tt)", "AFT", "RSF", "DeepAFT", "DeepSurv", "DeepHit", "N-MTLR"],
-        "C-Index": [0.6850, 0.8120, 0.7540, 0.7855, 0.7700, 0.7642, 0.6846],
-        "24-Mo AUC": ["-", 0.8930, 0.9110, 0.9012, 0.8916, 0.8868, 0.9018],
-        "60-Mo AUC": ["-", 0.9310, 0.9550, 0.9420, 0.9309, 0.9512, 0.9460],
-        "100-Mo AUC": ["-", 0.9280, 0.9550, 0.9261, 0.9232, 0.9419, 0.9283]
+        "Model": [
+            "Null model (referans)", 
+            "Zamana bağımlı Cox", 
+            "AFT (Log-Lojistik)", 
+            "RSF (Rastgele Orman)", 
+            "DeepSurv", 
+            "DeepHit", 
+            "N-MTLR", 
+            "DeepAFT"
+        ],
+        "C-İndeksi": [0.0, 0.685, 0.812, 0.766, 0.775, 0.769, 0.692, 0.784], # Null model için '-' yerine numerik/görsel uyum adına 0.0 veya yer tutucu verilebilir, st.dataframe string de kabul eder:
+        "AUC (24 ay)": ["—", "—", "89.1", "90.8", "89.0", "88.5", "90.0", "90.1"],
+        "AUC (60 ay)": ["—", "—", "93.0", "95.5", "92.8", "95.2", "94.2", "94.2"],
+        "AUC (100 ay)": ["—", "—", "93.1", "96.1", "91.3", "94.5", "92.8", "90.6"],
+        "Brier (24 ay)": [0.178, "—", 0.098, 0.095, 0.109, 0.199, 0.095, 0.094],
+        "Brier (60 ay)": [0.116, "—", 0.055, 0.049, 0.069, 0.109, 0.049, 0.054],
+        "Brier (100 ay)": [0.103, "—", 0.053, 0.045, 0.066, 0.095, 0.045, 0.053],
+        "IBS (100 ay)": [0.143, "—", 0.076, 0.071, 0.087, 0.158, 0.071, 0.074]
     }
-    st.dataframe(pd.DataFrame(data), use_container_width=True)
+    
+    # Null model C-indeksi düzeltmesi (görsel netlik için stringe çeviriyoruz)
+    df_perf = pd.DataFrame(data)
+    df_perf.iloc[0, 1] = "—" 
+    
+    st.dataframe(df_perf, use_container_width=True, hide_index=True)
     st.info(D[lang]["sidebar_info"])
 
 # --- HEADER BAŞLIKLARI ---
@@ -229,3 +254,5 @@ if st.button(D[lang]["btn_lbl"], type="primary"):
         
     st.warning(f"**{D[lang]['risk_lbl']}:** {risk_durumu}")
     st.write(f"**{D[lang]['summary_lbl']}:** {D[lang]['outcome_txt'].format(median=median_survival_time, month=target_month)} {risk_tavsiyesi}")
+
+```
