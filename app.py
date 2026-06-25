@@ -36,7 +36,7 @@ with col2:
     site_cat = st.selectbox("Tümör Yerleşim Bölgesi", ["1- Baş", "2- Gövde", "3- Kuyruk", "4- Belirsiz / Yayılmış"])
     hist_group = st.selectbox("Histolojik Grup", ["1- Ductal/Adenocarcinoma", "2- Neuroendocrine", "3- Other Pancreatic"])
     lnr_group = st.selectbox("Lenf Nodu Oranı (LNR)", ["N0", "N1", "N2", "Ameliyat Edilemez (İnoperabl)"])
-    stage = st.selectbox("Klinik Evre (Refined Stage)", ["L (Yerel)", "R (Bölgesel)", "D-Lu (Metastaz Akciğer)", "D-O (Metastaz Diğer)", "Metastaz Karaciğer"])
+    stage = st.selectbox("Klinik Evre (Refined Stage)", ["L (Yerel)", "R (Bölgesel)", "D-Lu (Metastaz Akciğer)", "D-O (Metastaz Diğer)", "D-Li (Metastaz Karaciğer)"])
     ts_cat = st.selectbox("Tümör Boyutu (T Kategorisi)", ["T1", "T2", "T3"])
 
 st.markdown("---")
