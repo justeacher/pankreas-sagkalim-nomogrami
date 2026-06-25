@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 # Sayfa ayarları
-st.set_page_config(page_title="Pankreas Kanseri Sağkalım Nomogramı", layout="wide")
+st.set_page_config(page_title="Pankreas Kanseri Gelişmiş Sağkalım Nomogramı", layout="wide")
 
 st.title("🩺 Pankreas Kanseri Gelişmiş Sağkalım Klinik Karar Destek Sistemi")
 st.write("Parametrik (Log-logistic AFT), Makine Öğrenmesi (RSF) ve Derin Öğrenme (DeepAFT) Karşılaştırmalı Nomogramı")
@@ -27,16 +27,16 @@ col1, col2 = st.columns(2)
 
 with col1:
     sex = st.selectbox("Cinsiyet", ["Kadın", "Erkek"])
-    race = st.selectbox("Irk", ["White", "API", "Black", "Diğer"])
+    race = st.selectbox("Irk", ["Beyaz", "Asya-Pasifik", "Siyah", "Amerikan Yerlisi/Alaska Yerlisi (AIAN)"])
     marital = st.selectbox("Medeni Durum", ["Evli", "Bekar/Diğer"])
-    age_group = st.selectbox("Yaş Grubu", ["Age Group L", "Diğer"])
-    treatment = st.selectbox("Tedavi Protokolü", ["ST (Cerrahi+Kemoterapi)", "S (Cerrahi)", "T (Kemoterapi)", "Hiçbiri"])
+    age_group = st.selectbox("Yaş Grubu", ["0-74 Yaş", "75+ Yaş"])
+    treatment = st.selectbox("Tedavi Protokolü", ["ST (Cerrahi + Terapi)", "S (Cerrahi)", "T (Terapi)", "Hiçbiri"])
 
 with col2:
-    site_cat = st.selectbox("Tümör Yerleşim Bölgesi", ["Kategori 1", "Kategori 2", "Kategori 3", "Kategori 4"])
-    hist_group = st.selectbox("Histolojik Derece (Grade)", ["Grup 1", "Grup 2", "Grup 3"])
-    lnr_group = st.selectbox("Lenf Nodu Oranı (LNR)", ["N0", "N1", "N2", "Diğer"])
-    stage = st.selectbox("Klinik Evre (Refined Stage)", ["L", "R", "D-Lu", "D-O", "Diğer"])
+    site_cat = st.selectbox("Tümör Yerleşim Bölgesi", ["1- Baş", "2- Gövde", "3- Kuyruk", "4- Belirsiz / Yayılmış"])
+    hist_group = st.selectbox("Histolojik Grup", ["1- Ductal/Adenocarcinoma", "2- Neuroendocrine", "3- Other Pancreatic"])
+    lnr_group = st.selectbox("Lenf Nodu Oranı (LNR)", ["N0", "N1", "N2", "Ameliyat Edilemez (İnoperabl)"])
+    stage = st.selectbox("Klinik Evre (Refined Stage)", ["L (Yerel)", "R (Bölgesel)", "D-Lu (Metastaz Akciğer)", "D-O (Metastaz Diğer)", "Metastaz Karaciğer"])
     ts_cat = st.selectbox("Tümör Boyutu (T Kategorisi)", ["T1", "T2", "T3"])
 
 st.markdown("---")
@@ -46,6 +46,7 @@ target_month = st.slider("Sağkalım olasılığını incelemek istediğiniz ay 
 SCALE_INTERCEPT = 2.323
 SHAPE = 1.925 
 
+# R model çıktısındaki orijinal katsayı isimleri sabit tutuldu
 COEFFICIENTS = {
     "race_API": 0.094, "race_B": 0.013, "race_W": 0.016, "marital_1": 0.057, "age_group_L": 0.238, "sex_M": -0.079,
     "site_category_2": 0.091, "site_category_3": 0.008, "site_category_4": 0.000, "histologic_group_2": 2.176, "histologic_group_3": -0.204,
@@ -54,30 +55,49 @@ COEFFICIENTS = {
     "Treatment_S": 1.561, "Treatment_ST": 1.973, "Treatment_T": 1.141
 }
 
+# Doğrusal Bileşen (Linear Predictor - lp) Hesabı
 lp = SCALE_INTERCEPT
+
 if sex == "Erkek": lp += COEFFICIENTS["sex_M"]
-if race == "API": lp += COEFFICIENTS["race_API"]
-elif race == "Black": lp += COEFFICIENTS["race_B"]
-elif race == "White": lp += COEFFICIENTS["race_W"]
+
+# Irk Kontrolü (Referans Grup AIAN kabul edilerek modele katsayı eklenmez)
+if race == "Asya-Pasifik": lp += COEFFICIENTS["race_API"]
+elif race == "Siyah": lp += COEFFICIENTS["race_B"]
+elif race == "Beyaz": lp += COEFFICIENTS["race_W"]
+
 if marital == "Evli": lp += COEFFICIENTS["marital_1"]
-if age_group == "Age Group L": lp += COEFFICIENTS["age_group_L"]
-if site_cat == "Kategori 2": lp += COEFFICIENTS["site_category_2"]
-elif site_cat == "Kategori 3": lp += COEFFICIENTS["site_category_3"]
-elif site_cat == "Kategori 4": lp += COEFFICIENTS["site_category_4"]
-if hist_group == "Grup 2": lp += COEFFICIENTS["histologic_group_2"]
-elif hist_group == "Grup 3": lp += COEFFICIENTS["histologic_group_3"]
+
+# Yaş Grubu (0-74 Yaş modelde 'L' katsayısına denk gelir, 75+ Yaş referans gruptur)
+if age_group == "0-74 Yaş": lp += COEFFICIENTS["age_group_L"]
+
+# Tümör Yerleşim Bölgesi (Kategori 1 referanstır)
+if site_cat == "2- Gövde": lp += COEFFICIENTS["site_category_2"]
+elif site_cat == "3- Kuyruk": lp += COEFFICIENTS["site_category_3"]
+elif site_cat == "4- Belirsiz / Yayılmış": lp += COEFFICIENTS["site_category_4"]
+
+# Histolojik Grup (Grup 1 referanstır)
+if hist_group == "2- Neuroendocrine": lp += COEFFICIENTS["histologic_group_2"]
+elif hist_group == "3- Other Pancreatic": lp += COEFFICIENTS["histologic_group_3"]
+
+# Lenf Nodu Oranı (İnoperabl seçeneği referans gruptur)
 if lnr_group == "N0": lp += COEFFICIENTS["lnr_group_N0"]
 elif lnr_group == "N1": lp += COEFFICIENTS["lnr_group_N1"]
 elif lnr_group == "N2": lp += COEFFICIENTS["lnr_group_N2"]
-if stage == "D-Lu": lp += COEFFICIENTS["refined_stage_D-Lu"]
-elif stage == "D-O": lp += COEFFICIENTS["refined_stage_D-O"]
-elif stage == "L": lp += COEFFICIENTS["refined_stage_L"]
-elif stage == "R": lp += COEFFICIENTS["refined_stage_R"]
+
+# Klinik Evre (Metastaz Karaciğer referans gruptur)
+if stage == "L (Yerel)": lp += COEFFICIENTS["refined_stage_L"]
+elif stage == "R (Bölgesel)": lp += COEFFICIENTS["refined_stage_R"]
+elif stage == "D-Lu (Metastaz Akciğer)": lp += COEFFICIENTS["refined_stage_D-Lu"]
+elif stage == "D-O (Metastaz Diğer)": lp += COEFFICIENTS["refined_stage_D-O"]
+
+# Tümör Boyutu (T1 referanstır)
 if ts_cat == "T2": lp += COEFFICIENTS["ts_category_T2"]
 elif ts_cat == "T3": lp += COEFFICIENTS["ts_category_T3"]
+
+# Tedavi Protokolü (Hiçbiri referanstır)
 if treatment == "S (Cerrahi)": lp += COEFFICIENTS["Treatment_S"]
-elif treatment == "ST (Cerrahi+Kemoterapi)": lp += COEFFICIENTS["Treatment_ST"]
-elif treatment == "T (Kemoterapi)": lp += COEFFICIENTS["Treatment_T"]
+elif treatment == "ST (Cerrahi + Terapi)": lp += COEFFICIENTS["Treatment_ST"]
+elif treatment == "T (Terapi)": lp += COEFFICIENTS["Treatment_T"]
 
 # --- HESAPLAMA VE GÖRSELLEŞTİRME ---
 st.subheader("📊 Karşılaştırmalı Sağkalım Analizi ve Klinik Yorum")
@@ -86,6 +106,7 @@ if st.button("🚀 Tüm Modeller İçin Analizi Çalıştır", type="primary"):
     
     median_survival_time = np.exp(lp)
     
+    # Seçilen ay için nokta tahminleri (Log-logistic AFT formülasyonu)
     aft_prob = 1 / (1 + (target_month / median_survival_time) ** SHAPE)
     rsf_prob = 1 / (1 + (target_month / (median_survival_time * 1.02)) ** (SHAPE * 0.98))
     deep_prob = 1 / (1 + (target_month / (median_survival_time * 0.99)) ** (SHAPE * 1.01))
@@ -104,7 +125,7 @@ if st.button("🚀 Tüm Modeller İçin Analizi Çalıştır", type="primary"):
         
     st.markdown("---")
     
-    # --- YENİ GARANTİ GRAFİK MOTORU (INTERAKTIF STREAMLIT GRAFIĞI) ---
+    # --- INTERAKTIF STREAMLIT GRAFIĞI ---
     st.subheader("📈 Zamana Bağlı Sağkalım Eğrisi Grafiği")
     
     months_range = np.arange(1, 121, 1)
@@ -112,7 +133,6 @@ if st.button("🚀 Tüm Modeller İçin Analizi Çalıştır", type="primary"):
     rsf_curve = 1 / (1 + (months_range / (median_survival_time * 1.02)) ** (SHAPE * 0.98)) * 100
     deep_curve = 1 / (1 + (months_range / (median_survival_time * 0.99)) ** (SHAPE * 1.01)) * 100
     
-    # Verileri Streamlit'in seveceği bir DataFrame haline getiriyoruz
     chart_data = pd.DataFrame({
         "Ay": months_range,
         "Log-logistic AFT (%)": aft_curve,
@@ -120,7 +140,6 @@ if st.button("🚀 Tüm Modeller İçin Analizi Çalıştır", type="primary"):
         "DeepAFT (%)": deep_curve
     }).set_index("Ay")
     
-    # Grafiği ekrana basıyoruz
     st.line_chart(chart_data)
     
     # --- TIBBİ AÇIKLAMA METNİ ---
