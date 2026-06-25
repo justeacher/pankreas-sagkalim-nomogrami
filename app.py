@@ -83,7 +83,7 @@ with st.sidebar.expander(D[lang]["sidebar_title"], expanded=True):
             "N-MTLR", 
             "DeepAFT"
         ],
-        "C-İndeksi": [0.0, 0.685, 0.812, 0.766, 0.775, 0.769, 0.692, 0.784],
+        "C-İndeksi": ["—", 0.685, 0.812, 0.766, 0.775, 0.769, 0.692, 0.784], # Hata veren iloc yerine doğrudan buraya eklendi
         "AUC (24 ay)": ["—", "—", "89.1", "90.8", "89.0", "88.5", "90.0", "90.1"],
         "AUC (60 ay)": ["—", "—", "93.0", "95.5", "92.8", "95.2", "94.2", "94.2"],
         "AUC (100 ay)": ["—", "—", "93.1", "96.1", "91.3", "94.5", "92.8", "90.6"],
@@ -94,8 +94,6 @@ with st.sidebar.expander(D[lang]["sidebar_title"], expanded=True):
     }
     
     df_perf = pd.DataFrame(data)
-    df_perf.iloc[0, 1] = "—" # Null model C-indeksi için görsel düzenleme
-    
     st.dataframe(df_perf, use_container_width=True, hide_index=True)
     st.info(D[lang]["sidebar_info"])
 
