@@ -1,10 +1,3 @@
-Belirttiğiniz yeni performans metrikleri tablosuna göre Streamlit kodunuzun sidebar kısmındaki veri yapısı ve ilgili bilgilendirme metni güncellenmiştir.
-
-Yeni tabloda yer alan tüm modeller (**Null model**, **Zamana bağımlı Cox**, **AFT**, **RSF**, **DeepSurv**, **DeepHit**, **N-MTLR** ve **DeepAFT**) ve bunlara ait **C-İndeksi**, **AUC (24, 60, 100 ay)**, **Brier Skorları (24, 60, 100 ay)** ve **IBS (100 ay)** metrikleri eksiksiz bir şekilde koda entegre edilmiştir.
-
-İşte güncellenmiş kodunuz:
-
-```python
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -90,7 +83,7 @@ with st.sidebar.expander(D[lang]["sidebar_title"], expanded=True):
             "N-MTLR", 
             "DeepAFT"
         ],
-        "C-İndeksi": [0.0, 0.685, 0.812, 0.766, 0.775, 0.769, 0.692, 0.784], # Null model için '-' yerine numerik/görsel uyum adına 0.0 veya yer tutucu verilebilir, st.dataframe string de kabul eder:
+        "C-İndeksi": [0.0, 0.685, 0.812, 0.766, 0.775, 0.769, 0.692, 0.784],
         "AUC (24 ay)": ["—", "—", "89.1", "90.8", "89.0", "88.5", "90.0", "90.1"],
         "AUC (60 ay)": ["—", "—", "93.0", "95.5", "92.8", "95.2", "94.2", "94.2"],
         "AUC (100 ay)": ["—", "—", "93.1", "96.1", "91.3", "94.5", "92.8", "90.6"],
@@ -100,9 +93,8 @@ with st.sidebar.expander(D[lang]["sidebar_title"], expanded=True):
         "IBS (100 ay)": [0.143, "—", 0.076, 0.071, 0.087, 0.158, 0.071, 0.074]
     }
     
-    # Null model C-indeksi düzeltmesi (görsel netlik için stringe çeviriyoruz)
     df_perf = pd.DataFrame(data)
-    df_perf.iloc[0, 1] = "—" 
+    df_perf.iloc[0, 1] = "—" # Null model C-indeksi için görsel düzenleme
     
     st.dataframe(df_perf, use_container_width=True, hide_index=True)
     st.info(D[lang]["sidebar_info"])
@@ -254,5 +246,3 @@ if st.button(D[lang]["btn_lbl"], type="primary"):
         
     st.warning(f"**{D[lang]['risk_lbl']}:** {risk_durumu}")
     st.write(f"**{D[lang]['summary_lbl']}:** {D[lang]['outcome_txt'].format(median=median_survival_time, month=target_month)} {risk_tavsiyesi}")
-
-```
