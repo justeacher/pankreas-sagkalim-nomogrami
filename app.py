@@ -37,7 +37,8 @@ D = {
         "high_txt": "Hasta kısa dönemli yüksek sağkalım riskine sahiptir. Multidisipliner yaklaşım, agresif tedavi protokolleri ve yakın klinik takip önerilmektedir.",
         "mid_txt": "Standart kombinasyon/adjuvan tedavileriyle hastanın sağkalım eğrisinin stabilize edilmesi hedeflenmelidir.",
         "low_txt": "Genel pankreas kanseri kohortuna kıyasla daha olumlu bir prognostik seyir öngörülmektedir.",
-        "outcome_txt": "Yapılan çoklu model simülasyonuna göre, hastanın tahmini medyan sağkalım süresi **{median:.2f} ay** olarak hesaplanmıştır. Seçilen **{month}. ayda** hastanın hayatta kalma şansı modeller arasında istatistiksel olarak tutarlı bir şekilde stabilize olmaktadır."
+        "outcome_txt": "Yapılan çoklu model simülasyonuna göre, hastanın tahmini medyan sağkalım süresi **{median:.2f} ay** olarak hesaplanmıştır. Seçilen **{month}. ayda** hastanın hayatta kalma şansı modeller arasında istatistiksel olarak tutarlı bir şekilde stabilize olmaktadır.",
+        "disclaimer": "⚠️ **YASAL UYARI:** Bu araç sadece akademik amaçlıdır, klinik karar için kullanılamaz. Gerçek tanı ve tedavi süreçleri için mutlaka bir uzman hekime danışılmalıdır."
     },
     "English": {
         "title": "🩺 Pancreatic Cancer Survival Clinical Decision Support System",
@@ -66,7 +67,8 @@ D = {
         "high_txt": "The patient carries a high risk for short-term survival. Multidisciplinary approach, aggressive therapeutic intervention, and close clinical surveillance are highly recommended.",
         "mid_txt": "Therapeutic stabilization of the survival curve via standard combination/adjuvant therapies should be targeted.",
         "low_txt": "A significantly more favorable prognostic course is expected compared to the general pancreatic cancer cohort.",
-        "outcome_txt": "Based on multi-model simulation, the patient's estimated median survival is **{median:.2f} months**. At the selected **month {month}**, the patient's survival probability stabilizes statistically consistently across all architectures."
+        "outcome_txt": "Based on multi-model simulation, the patient's estimated median survival is **{median:.2f} months**. At the selected **month {month}**, the patient's survival probability stabilizes statistically consistently across all architectures.",
+        "disclaimer": "⚠️ **DISCLAIMER:** This tool is for academic purposes only and cannot be used for clinical decisions. A specialized physician must be consulted for actual diagnosis and treatment processes."
     }
 }
 
@@ -83,7 +85,7 @@ with st.sidebar.expander(D[lang]["sidebar_title"], expanded=True):
             "N-MTLR", 
             "DeepAFT"
         ],
-        "C-İndeksi": ["—", 0.685, 0.812, 0.766, 0.775, 0.769, 0.692, 0.784], # Hata veren iloc yerine doğrudan buraya eklendi
+        "C-İndeksi": ["—", 0.685, 0.812, 0.766, 0.775, 0.769, 0.692, 0.784],
         "AUC (24 ay)": ["—", "—", "89.1", "90.8", "89.0", "88.5", "90.0", "90.1"],
         "AUC (60 ay)": ["—", "—", "93.0", "95.5", "92.8", "95.2", "94.2", "94.2"],
         "AUC (100 ay)": ["—", "—", "93.1", "96.1", "91.3", "94.5", "92.8", "90.6"],
@@ -96,6 +98,10 @@ with st.sidebar.expander(D[lang]["sidebar_title"], expanded=True):
     df_perf = pd.DataFrame(data)
     st.dataframe(df_perf, use_container_width=True, hide_index=True)
     st.info(D[lang]["sidebar_info"])
+
+# Sidebar için Akademik Uyarı İbaresi
+st.sidebar.markdown("---")
+st.sidebar.error(D[lang]["disclaimer"])
 
 # --- HEADER BAŞLIKLARI ---
 st.title(D[lang]["title"])
@@ -244,3 +250,7 @@ if st.button(D[lang]["btn_lbl"], type="primary"):
         
     st.warning(f"**{D[lang]['risk_lbl']}:** {risk_durumu}")
     st.write(f"**{D[lang]['summary_lbl']}:** {D[lang]['outcome_txt'].format(median=median_survival_time, month=target_month)} {risk_tavsiyesi}")
+    
+    # Rapor Sonu Akademik Uyarı İbaresi
+    st.markdown("---")
+    st.error(D[lang]["disclaimer"])
