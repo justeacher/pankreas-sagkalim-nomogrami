@@ -12,9 +12,9 @@ lang = st.radio("🌐 Dil Seçimi / Language Selection", ["Türkçe", "English"]
 D = {
     "Türkçe": {
         "title": "🩺 Pankreas Kanseri Sağkalım Klinik Karar Destek Sistemi",
-        "subtitle": "Parametrik (Log-logistic AFT), Makine Öğrenmesi (RSF) ve Derin Öğrenme (DeepAFT) Karşılaştırmalı Nomogramı",
+        "subtitle": "Parametrik (Log-logistic AFT), Makine Öğrenmesi (RSF) ve Derin Öğrenme (DeepAFT-LL) Karşılaştırmalı Nomogramı",
         "sidebar_title": "📊 Model Performans Metrikleri (Tez Bulguları)",
-        "sidebar_info": "💡 Genel ayırt edicilikte (C-İndeksi) **DeepAFT**, uzun vadeli başarıda (AUC) **RSF** öne çıkmaktadır.",
+        "sidebar_info": "💡 Genel ayırt edicilikte (C-İndeksi) **DeepAFT-LL**, uzun vadeli başarıda (AUC) **RSF** öne çıkmaktadır.",
         "input_header": "📋 Hasta ve Klinik Risk Faktörleri",
         "sex": "Cinsiyet", "race": "Irk", "marital": "Medeni Durum", "age": "Yaş Grubu", "treatment": "Tedavi Protokolü",
         "site": "Tümör Yerleşim Bölgesi", "grade": "Histolojik Grup", "lnr": "Lenf Nodu Oranı (LNR)", "stage": "Klinik Evre (Refined Stage)", "t_cat": "Tümör Boyutu (T Kategorisi)",
@@ -23,7 +23,7 @@ D = {
         "result_header": "📊 Karşılaştırmalı Sağkalım Analizi ve Klinik Yorum",
         "aft_lbl": "📊 Log-logistic AFT Olasılığı",
         "rsf_lbl": "🌲 RSF Olasılığı (En İyi AUC)",
-        "deep_lbl": "🧠 DeepAFT Olasılığı",
+        "deep_lbl": "🧠 DeepAFT-LL Olasılığı",
         "med_lbl": "Tahmini Medyan Süre",
         "rsf_cap": "Makine Öğrenmesi Tahmini",
         "deep_cap": "Yapay Sinir Ağları Tahmini",
@@ -42,9 +42,9 @@ D = {
     },
     "English": {
         "title": "🩺 Pancreatic Cancer Survival Clinical Decision Support System",
-        "subtitle": "Comparative Nomogram of Parametric (Log-logistic AFT), Machine Learning (RSF), and Deep Learning (DeepAFT)",
+        "subtitle": "Comparative Nomogram of Parametric (Log-logistic AFT), Machine Learning (RSF), and Deep Learning (DeepAFT-LL)",
         "sidebar_title": "📊 Model Performance Metrics (Thesis Findings)",
-        "sidebar_info": "💡 **DeepAFT** excels in global discrimination (C-Index), while **RSF** outperforms in long-term success (AUC).",
+        "sidebar_info": "💡 **DeepAFT-LL** excels in global discrimination (C-Index), while **RSF** outperforms in long-term success (AUC).",
         "input_header": "📋 Patient & Clinical Risk Factors",
         "sex": "Sex", "race": "Race", "marital": "Marital Status", "age": "Age Group", "treatment": "Therapeutic Protocol",
         "site": "Primary Tumor Site Category", "grade": "Histologic Group", "lnr": "Lymph Node Ratio (LNR)", "stage": "Clinical Stage (Refined Stage)", "t_cat": "Tumor Size (T Category)",
@@ -53,7 +53,7 @@ D = {
         "result_header": "📊 Comparative Survival Analysis & Clinical Interpretation",
         "aft_lbl": "📊 Log-logistic AFT Probability",
         "rsf_lbl": "🌲 RSF Probability (Best AUC)",
-        "deep_lbl": "🧠 DeepAFT Probability",
+        "deep_lbl": "🧠 DeepAFT-LL Probability",
         "med_lbl": "Estimated Median Survival",
         "rsf_cap": "Machine Learning Prediction",
         "deep_cap": "Neural Networks (Deep Learning) Prediction",
@@ -83,7 +83,7 @@ with st.sidebar.expander(D[lang]["sidebar_title"], expanded=True):
             "DeepSurv", 
             "DeepHit", 
             "N-MTLR", 
-            "DeepAFT"
+            "DeepAFT-LL"
         ],
         "C-İndeksi": ["—", 0.685, 0.812, 0.766, 0.775, 0.769, 0.692, 0.784],
         "AUC (24 ay)": ["—", "—", "89.1", "90.8", "89.0", "88.5", "90.0", "90.1"],
@@ -229,7 +229,7 @@ if st.button(D[lang]["btn_lbl"], type="primary"):
         "Month / Ay": months_range,
         "Log-logistic AFT (%)": aft_curve,
         "Random Survival Forests (%)": rsf_curve,
-        "DeepAFT (%)": deep_curve
+        "DeepAFT-LL (%)": deep_curve
     }).set_index("Month / Ay")
     
     st.line_chart(chart_data)
