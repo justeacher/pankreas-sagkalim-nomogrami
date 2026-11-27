@@ -13,7 +13,6 @@ st.set_page_config(
 # --- TAM BEYAZ TEMA ZORLAYICI CSS (TÜM BİLEŞENLER İÇİN) ---
 st.markdown("""
     <style>
-        /* Tarayıcı ve kök bileşenleri açık temaya zorla */
         :root {
             color-scheme: light !important;
         }
@@ -21,21 +20,17 @@ st.markdown("""
             background-color: #FFFFFF !important;
             color: #0F172A !important;
         }
-        /* Sidebar arka planı */
         [data-testid="stSidebar"], [data-testid="stSidebarContent"] {
             background-color: #F8FAFC !important;
             border-right: 1px solid #CBD5E1 !important;
         }
-        /* Üst boşluk ayarı (başlıkların kesilmemesi için) */
         .block-container {
             padding-top: 2.2rem !important;
             padding-bottom: 2rem !important;
         }
-        /* Tüm metinlerin koyu renkte net görünmesi */
         h1, h2, h3, h4, p, span, label, div[data-testid="stMarkdownContainer"] {
             color: #0F172A !important;
         }
-        /* Selectbox (Açılır kutular) ve içindeki metinler */
         div[data-baseweb="select"] > div {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
@@ -50,7 +45,6 @@ st.markdown("""
             background-color: #FFFFFF !important;
             color: #0F172A !important;
         }
-        /* Expander (Katlanabilir kutular - Hem Sidebar hem Alt Tablo) */
         div[data-testid="stExpander"] {
             background-color: #FFFFFF !important;
             border: 1px solid #CBD5E1 !important;
@@ -66,14 +60,12 @@ st.markdown("""
             color: #0F172A !important;
             fill: #0F172A !important;
         }
-        /* Metrik kartları */
         div[data-testid="stMetric"] {
             background-color: #F8FAFC !important;
             border: 1px solid #CBD5E1 !important;
             border-radius: 8px !important;
             padding: 12px 16px !important;
         }
-        /* Uyarı (st.warning / st.info) kutularını açık sarı/mavi yapma */
         div[data-testid="stAlert"] {
             background-color: #FEF9C3 !important;
             color: #0F172A !important;
@@ -83,7 +75,6 @@ st.markdown("""
         div[data-testid="stAlert"] p, div[data-testid="stAlert"] strong {
             color: #0F172A !important;
         }
-        /* Buton stili */
         div.stButton > button {
             background-color: #0F172A !important;
             color: #FFFFFF !important;
@@ -95,11 +86,9 @@ st.markdown("""
         div.stButton > button p {
             color: #FFFFFF !important;
         }
-        /* Dataframe / Tablo arka planı */
         [data-testid="stDataFrame"] {
             background-color: #FFFFFF !important;
         }
-        /* Grafik kapsayıcısı */
         div[data-testid="stVegaLiteChart"] {
             background-color: #FFFFFF !important;
             border: 1px solid #E2E8F0 !important;
@@ -195,73 +184,67 @@ with st.sidebar:
             "Sadece Cerrahi / Surgery Only",
             "Sadece Kemoterapi / Chemo Only",
             "Kemoradyoterapi / Chemoradiation",
-"Tedavi Yok / No Treatment"
-])
-with st.expander(T["clin_sec"], expanded=True):
-site = st.selectbox(T["site"], ["Baş / Head", "Gövde / Body", "Kuyruk / Tail", "Diğer / Other"])
-grade = st.selectbox(T["grade"], ["Grade I (İyi)", "Grade II (Orta)", "Grade III (Kötü)", "Grade IV (Diferansiye Olmamış)"])
-lnr = st.selectbox(T["lnr"], ["0 (Negatif)", "0.01 - 0.20", "0.21 - 0.50", "> 0.50"])
-stage = st.selectbox(T["stage"], ["Evre I / Stage I", "Evre II / Stage II", "Evre III / Stage III", "Evre IV / Stage IV"])
-t_cat = st.selectbox(T["t_cat"], ["T1", "T2", "T3", "T4"])
-target_month = st.slider(T["slider_lbl"], min_value=1, max_value=120, value=24, step=1)
-run_btn = st.button(T["btn_lbl"])
-st.markdown("---")
-st.info(T["sidebar_info"])
+            "Tedavi Yok / No Treatment"
+        ])
 
---- ANA BAŞLIK ---
+    with st.expander(T["clin_sec"], expanded=True):
+        site = st.selectbox(T["site"], ["Baş / Head", "Gövde / Body", "Kuyruk / Tail", "Diğer / Other"])
+        grade = st.selectbox(T["grade"], ["Grade I (İyi)", "Grade II (Orta)", "Grade III (Kötü)", "Grade IV (Diferansiye Olmamış)"])
+        lnr = st.selectbox(T["lnr"], ["0 (Negatif)", "0.01 - 0.20", "0.21 - 0.50", "> 0.50"])
+        stage = st.selectbox(T["stage"], ["Evre I / Stage I", "Evre II / Stage II", "Evre III / Stage III", "Evre IV / Stage IV"])
+        t_cat = st.selectbox(T["t_cat"], ["T1", "T2", "T3", "T4"])
 
+    target_month = st.slider(T["slider_lbl"], min_value=1, max_value=120, value=24, step=1)
+    run_btn = st.button(T["btn_lbl"])
+    st.markdown("---")
+    st.info(T["sidebar_info"])
+
+# --- ANA BAŞLIK ---
 st.title(T["title"])
-st.markdown(f"{T['subtitle']}")
+st.markdown(f"*{T['subtitle']}*")
 st.markdown("---")
 
---- RİSK VE SAĞKALIM SİMÜLASYON HESAPLAMASI ---
-
-
-Not: Gerçek eğitilmiş model katsayılarınızı buraya entegre edebilirsiniz.
-
+# --- RİSK VE SAĞKALIM SİMÜLASYON HESAPLAMASI ---
+# Not: Gerçek eğitilmiş model katsayılarınızı buraya entegre edebilirsiniz.
 risk_score = 0.0
 risk_score += {"Evre I / Stage I": -0.6, "Evre II / Stage II": -0.2, "Evre III / Stage III": 0.3, "Evre IV / Stage IV": 0.9}[stage]
 risk_score += {"0 (Negatif)": -0.3, "0.01 - 0.20": 0.0, "0.21 - 0.50": 0.35, "> 0.50": 0.65}[lnr]
 risk_score += {"Grade I (İyi)": -0.25, "Grade II (Orta)": 0.0, "Grade III (Kötü)": 0.25, "Grade IV (Diferansiye Olmamış)": 0.45}[grade]
 risk_score += {
-"Cerrahi + Kemoterapi / Surgery + Chemo": -0.55,
-"Sadece Cerrahi / Surgery Only": -0.25,
-"Kemoradyoterapi / Chemoradiation": -0.1,
-"Sadece Kemoterapi / Chemo Only": 0.15,
-"Tedavi Yok / No Treatment": 0.75
+    "Cerrahi + Kemoterapi / Surgery + Chemo": -0.55,
+    "Sadece Cerrahi / Surgery Only": -0.25,
+    "Kemoradyoterapi / Chemoradiation": -0.1,
+    "Sadece Kemoterapi / Chemo Only": 0.15,
+    "Tedavi Yok / No Treatment": 0.75
 }[treatment]
 risk_score += {"< 50": -0.2, "50 - 59": -0.1, "60 - 69": 0.0, "70 - 79": 0.15, "80+": 0.35}[age]
 risk_score += {"T1": -0.2, "T2": 0.0, "T3": 0.15, "T4": 0.35}[t_cat]
 
-Zaman ekseni (0 - 120 ay)
-
+# Zaman ekseni (0 - 120 ay)
 t_grid = np.arange(0, 121, 1)
 
-Log-logistic AFT sağkalım fonksiyonu: S(t) = 1 / (1 + (t / alpha)^beta)
-
+# Log-logistic AFT sağkalım fonksiyonu: S(t) = 1 / (1 + (t / alpha)^beta)
 alpha_aft = max(3.0, 22.0 * np.exp(-risk_score))
 beta_aft = 1.45
 s_aft = 1.0 / (1.0 + (t_grid / alpha_aft) ** beta_aft)
 
-DeepAFT-LL sağkalım eğrisi (hafif non-lineer düzeltmeli)
-
+# DeepAFT-LL sağkalım eğrisi (hafif non-lineer düzeltmeli)
 alpha_deep = max(3.0, 23.5 * np.exp(-risk_score * 0.95))
 beta_deep = 1.52
 s_deep = 1.0 / (1.0 + (t_grid / alpha_deep) ** beta_deep)
 
-RSF (Random Survival Forest) basamaklı/ağaç tabanlı sağkalım yaklaşımı
+# RSF (Random Survival Forest) ağaç tabanlı sağkalım yaklaşımı (Weibull benzeri)
+alpha_rsf = alpha_aft * 1.15
+beta_rsf = 1.18
+s_rsf = np.exp(-((t_grid / alpha_rsf) ** beta_rsf))
 
-s_rsf = np.exp(-((t_grid / (alpha_aft * 1.15)) ** 1.18))
-
-Seçilen aydaki olasılıklar
-
+# Seçilen aydaki olasılıklar
 prob_aft = s_aft[target_month] * 100
 prob_rsf = s_rsf[target_month] * 100
 prob_deep = s_deep[target_month] * 100
-median_surv = float(np.mean([alpha_aft, alpha_deep, alpha_aft * 1.15 * (np.log(2) ** (1 / 1.18))]))
+median_surv = float(np.mean([alpha_aft, alpha_deep, alpha_rsf * (np.log(2) ** (1 / beta_rsf))]))
 
---- ÜST METRİK KARTLARI ---
-
+# --- ÜST METRİK KARTLARI ---
 c1, c2, c3, c4 = st.columns(4)
 c1.metric(T["aft_lbl"], f"%{prob_aft:.1f}")
 c2.metric(T["rsf_lbl"], f"%{prob_rsf:.1f}")
@@ -269,82 +252,86 @@ c3.metric(T["deep_lbl"], f"%{prob_deep:.1f}")
 c4.metric(T["med_lbl"], f"{median_surv:.1f} Ay" if lang == "Türkçe" else f"{median_surv:.1f} Mos")
 st.markdown("---")
 
---- SAĞKALIM EĞRİLERİ GRAFİĞİ ---
-
+# --- SAĞKALIM EĞRİLERİ GRAFİĞİ ---
 col_chart_title, col_zoom = st.columns([3, 1])
 with col_chart_title:
-st.subheader(T["chart_title"])
+    st.subheader(T["chart_title"])
 with col_zoom:
-zoom_y = st.checkbox(T["zoom_lbl"], value=False)
+    zoom_y = st.checkbox(T["zoom_lbl"], value=False)
+
+# Dahili sütun adları sabit tutulur (parantez/boşluk içeren adlar Altair'de sorun çıkarabilir),
+# görünen başlıklar sözlükten gelir.
+n = len(t_grid)
 df_plot = pd.DataFrame({
-T["x_axis"]: np.tile(t_grid, 3),
-T["y_axis"]: np.concatenate([s_aft * 100, s_rsf * 100, s_deep * 100]),
-T["model_lbl"]: (["Log-logistic AFT"] * len(t_grid)) + (["RSF"] * len(t_grid)) + (["DeepAFT-LL"] * len(t_grid))
+    "t": np.tile(t_grid, 3),
+    "S": np.concatenate([s_aft * 100, s_rsf * 100, s_deep * 100]),
+    "Model": ["Log-logistic AFT"] * n + ["RSF"] * n + ["DeepAFT-LL"] * n
 })
+
 y_scale = alt.Scale(zero=False) if zoom_y else alt.Scale(domain=[0, 100])
+
 line_chart = alt.Chart(df_plot).mark_line(strokeWidth=3).encode(
-x=alt.X(T["x_axis"], title=T["x_axis"]),
-y=alt.Y(T["y_axis"], title=T["y_axis"], scale=y_scale),
-color=alt.Color(
-T["model_lbl"],
-scale=alt.Scale(
-domain=["Log-logistic AFT", "RSF", "DeepAFT-LL"],
-range=["#2563EB", "#16A34A", "#DC2626"]
-),
-legend=alt.Legend(orient="top", title=None)
-),
-tooltip=[
-alt.Tooltip(T["x_axis"], format=".0f"),
-alt.Tooltip(T["model_lbl"]),
-alt.Tooltip(T["y_axis"], format=".2f")
-]
+    x=alt.X("t:Q", title=T["x_axis"]),
+    y=alt.Y("S:Q", title=T["y_axis"], scale=y_scale),
+    color=alt.Color(
+        "Model:N",
+        title=T["model_lbl"],
+        scale=alt.Scale(
+            domain=["Log-logistic AFT", "RSF", "DeepAFT-LL"],
+            range=["#2563EB", "#16A34A", "#DC2626"]
+        ),
+        legend=alt.Legend(orient="top", title=None)
+    ),
+    tooltip=[
+        alt.Tooltip("t:Q", title=T["x_axis"], format=".0f"),
+        alt.Tooltip("Model:N", title=T["model_lbl"]),
+        alt.Tooltip("S:Q", title=T["y_axis"], format=".2f")
+    ]
 )
-vline = alt.Chart(pd.DataFrame({T["x_axis"]: [target_month]})).mark_rule(
-color="#475569", strokeDash=[5, 5], strokeWidth=2
-).encode(x=T["x_axis"])
+
+vline = alt.Chart(pd.DataFrame({"t": [target_month]})).mark_rule(
+    color="#475569", strokeDash=[5, 5], strokeWidth=2
+).encode(x="t:Q")
+
 final_chart = (line_chart + vline).properties(height=380).configure(
-background="#FFFFFF"
+    background="#FFFFFF"
 ).configure_axis(
-labelColor="#0F172A",
-titleColor="#0F172A",
-gridColor="#E2E8F0"
+    labelColor="#0F172A",
+    titleColor="#0F172A",
+    gridColor="#E2E8F0"
 ).configure_legend(
-labelColor="#0F172A"
+    labelColor="#0F172A"
 )
 st.altair_chart(final_chart, use_container_width=True)
 
---- KLİNİK BULGULAR VE RİSK SINIFLANDIRMASI ---
-
+# --- KLİNİK BULGULAR VE RİSK SINIFLANDIRMASI ---
 st.subheader(T["report_title"])
 if median_surv < 12:
-risk_badge, risk_desc = T["high_risk"], T["high_txt"]
+    risk_badge, risk_desc = T["high_risk"], T["high_txt"]
 elif median_surv < 24:
-risk_badge, risk_desc = T["mid_risk"], T["mid_txt"]
+    risk_badge, risk_desc = T["mid_risk"], T["mid_txt"]
 else:
-risk_badge, risk_desc = T["low_risk"], T["low_txt"]
+    risk_badge, risk_desc = T["low_risk"], T["low_txt"]
+
 r_col1, r_col2 = st.columns([1, 2])
 with r_col1:
-st.markdown(f"{T['risk_lbl']}")
-st.markdown(f"### {risk_badge}")
+    st.markdown(f"**{T['risk_lbl']}**")
+    st.markdown(f"### {risk_badge}")
 with r_col2:
-st.markdown(f"{T['summary_lbl']}")
-st.write(T["outcome_txt"].format(median=median_surv, month=target_month))
-st.write(risk_desc)
+    st.markdown(f"**{T['summary_lbl']}**")
+    st.write(T["outcome_txt"].format(median=median_surv, month=target_month))
+    st.write(risk_desc)
 
---- BENCHMARK TABLOSU ---
-
+# --- BENCHMARK TABLOSU ---
 with st.expander(T["perf_title"], expanded=False):
-bench_df = pd.DataFrame({
-"Model": ["Log-logistic AFT", "DeepAFT-LL", "RSF (Random Survival Forest)", "Cox PH"],
-"C-Index": [0.812, 0.784, 0.779, 0.765],
-"12-Ay AUC": [0.845, 0.821, 0.838, 0.802],
-"36-Ay AUC": [0.810, 0.795, 0.851, 0.774],
-"IBS (Brier Score)": [0.118, 0.126, 0.121, 0.139]
-})
-st.dataframe(bench_df, use_container_width=True, hide_index=True)
+    bench_df = pd.DataFrame({
+        "Model": ["Log-logistic AFT", "DeepAFT-LL", "RSF (Random Survival Forest)", "Cox PH"],
+        "C-Index": [0.812, 0.784, 0.779, 0.765],
+        "12-Ay AUC": [0.845, 0.821, 0.838, 0.802],
+        "36-Ay AUC": [0.810, 0.795, 0.851, 0.774],
+        "IBS (Brier Score)": [0.118, 0.126, 0.121, 0.139]
+    })
+    st.dataframe(bench_df, use_container_width=True, hide_index=True)
+
 st.markdown("---")
-st.warning(T["disclaimer"]) 
-
-
-
-
+st.warning(T["disclaimer"])
