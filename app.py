@@ -1,9 +1,43 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 
 # Sayfa ayarları - Geniş ve Modern Görünüm
 st.set_page_config(page_title="Pancreatic Cancer CDSS", layout="wide", initial_sidebar_state="expanded")
+
+# --- BEYAZ TEMA ZORLAYICI CSS ---
+st.markdown("""
+    <style>
+        /* Ana arka plan ve metin renkleri */
+        .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+            background-color: #FFFFFF !important;
+            color: #1E293B !important;
+        }
+        /* Sidebar arka planı */
+        [data-testid="stSidebar"] {
+            background-color: #F8FAFC !important;
+            border-right: 1px solid #E2E8F0;
+        }
+        /* Tüm başlık ve metinlerin koyu renkte görünmesi */
+        h1, h2, h3, h4, p, span, label, div[data-testid="stMarkdownContainer"] {
+            color: #1E293B !important;
+        }
+        /* Metrik kartları için belirgin çerçeve ve açık arka plan */
+        div[data-testid="stMetric"] {
+            background-color: #F8FAFC !important;
+            border: 1px solid #CBD5E1 !important;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        /* Selectbox ve input alanlarının beyaz kalması */
+        div[data-baseweb="select"] > div {
+            background-color: #FFFFFF !important;
+            color: #1E293B !important;
+            border-color: #CBD5E1 !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # --- DİL SEÇİMİ (LANGUAGE SELECTION) ---
 lang = st.radio("🌐 Dil Seçimi / Language Selection", ["Türkçe", "English"], horizontal=True)
@@ -28,6 +62,9 @@ D = {
         "rsf_cap": "Makine Öğrenmesi Tahmini",
         "deep_cap": "Yapay Sinir Ağları Tahmini",
         "chart_title": "📈 Zamana Bağlı Sağkalım Eğrisi Grafiği",
+        "x_axis": "Zaman (Ay)",
+        "y_axis": "Sağkalım Olasılığı (%)",
+        "target_line": "Seçilen Ay",
         "report_title": "💡 Klinik Bulguların Değerlendirilmesi",
         "risk_lbl": "Hasta Risk Sınıfı",
         "summary_lbl": "Prognostik Özet",
@@ -58,6 +95,9 @@ D = {
         "rsf_cap": "Machine Learning Prediction",
         "deep_cap": "Neural Networks (Deep Learning) Prediction",
         "chart_title": "📈 Time-Dependent Survival Curves",
+        "x_axis": "Time (Months)",
+        "y_axis": "Survival Probability (%)",
+        "target_line": "Selected Month",
         "report_title": "💡 Clinical Findings Evaluation",
         "risk_lbl": "Patient Risk Stratification",
         "summary_lbl": "Prognostic Summary",
@@ -158,7 +198,6 @@ COEFFICIENTS = {
 lp = SCALE_INTERCEPT
 if "Erkek" in sex or "Male" in sex: lp += COEFFICIENTS["sex_M"]
 
-# Irk Haritalama
 if "Asya" in race or "Asian" in race: lp += COEFFICIENTS["race_API"]
 elif "Siyah" in race or "Black" in race: lp += COEFFICIENTS["race_B"]
 elif "Beyaz" in race or "White" in race: lp += COEFFICIENTS["race_W"]
@@ -166,21 +205,17 @@ elif "Beyaz" in race or "White" in race: lp += COEFFICIENTS["race_W"]
 if "Evli" in marital or "Married" in marital: lp += COEFFICIENTS["marital_1"]
 if "0-74" in age_group: lp += COEFFICIENTS["age_group_L"]
 
-# Bölge Haritalama
 if "Gövde" in site_cat or "Body" in site_cat: lp += COEFFICIENTS["site_category_2"]
 elif "Kuyruk" in site_cat or "Tail" in site_cat: lp += COEFFICIENTS["site_category_3"]
 elif "Belirsiz" in site_cat or "Overlapping" in site_cat: lp += COEFFICIENTS["site_category_4"]
 
-# Histoloji Haritalama
 if "Neuroendocrine" in hist_group: lp += COEFFICIENTS["histologic_group_2"]
 elif "Other" in hist_group: lp += COEFFICIENTS["histologic_group_3"]
 
-# LNR Haritalama
 if "N0" in lnr_group: lp += COEFFICIENTS["lnr_group_N0"]
 elif "N1" in lnr_group: lp += COEFFICIENTS["lnr_group_N1"]
 elif "N2" in lnr_group: lp += COEFFICIENTS["lnr_group_N2"]
 
-# Evre Haritalama
 if "L (" in stage: lp += COEFFICIENTS["refined_stage_L"]
 elif "R (" in stage: lp += COEFFICIENTS["refined_stage_R"]
 elif "D-Lu" in stage: lp += COEFFICIENTS["refined_stage_D-Lu"]
@@ -217,22 +252,101 @@ if st.button(D[lang]["btn_lbl"], type="primary"):
         
     st.markdown("---")
     
-    # --- INTERAKTIF STREAMLIT GRAFIĞI ---
+    # --- YÜKSEK NETLİKTE PLOTLY SAĞKALIM EĞRİLERİ ---
     st.subheader(D[lang]["chart_title"])
     
-    months_range = np.arange(1, 121, 1)
+    months_range = np.arange(0, 121, 1)
     aft_curve = 1 / (1 + (months_range / median_survival_time) ** SHAPE) * 100
     rsf_curve = 1 / (1 + (months_range / (median_survival_time * 1.02)) ** (SHAPE * 0.98)) * 100
     deep_curve = 1 / (1 + (months_range / (median_survival_time * 0.99)) ** (SHAPE * 1.01)) * 100
     
-    chart_data = pd.DataFrame({
-        "Month / Ay": months_range,
-        "Log-logistic AFT (%)": aft_curve,
-        "Random Survival Forests (%)": rsf_curve,
-        "DeepAFT-LL (%)": deep_curve
-    }).set_index("Month / Ay")
-    
-    st.line_chart(chart_data)
+    fig = go.Figure()
+
+    # 1. Log-logistic AFT Eğrisi (Koyu Mavi - Düz Kalın Çizgi)
+    fig.add_trace(go.Scatter(
+        x=months_range, y=aft_curve,
+        mode='lines',
+        name='Log-logistic AFT',
+        line=dict(color='#1D4ED8', width=3.5, dash='solid')
+    ))
+
+    # 2. RSF Eğrisi (Zümrüt Yeşili - Kesikli Çizgi - Üst üste binmeyi görünür kılar)
+    fig.add_trace(go.Scatter(
+        x=months_range, y=rsf_curve,
+        mode='lines',
+        name='Random Survival Forests (RSF)',
+        line=dict(color='#059669', width=3, dash='dash')
+    ))
+
+    # 3. DeepAFT-LL Eğrisi (Canlı Turuncu/Kırmızı - Noktalı Çizgi)
+    fig.add_trace(go.Scatter(
+        x=months_range, y=deep_curve,
+        mode='lines',
+        name='DeepAFT-LL',
+        line=dict(color='#DC2626', width=3, dash='dot')
+    ))
+
+    # Seçilen Ay (t) için Dikey Referans Çizgisi ve Noktalar
+    fig.add_vline(
+        x=target_month, 
+        line_width=2, 
+        line_dash="dashdot", 
+        line_color="#475569",
+        annotation_text=f" {D[lang]['target_line']}: {target_month}",
+        annotation_position="top right",
+        annotation_font=dict(color="#1E293B", size=13, family="Arial")
+    )
+
+    fig.add_trace(go.Scatter(
+        x=[target_month, target_month, target_month],
+        y=[aft_prob * 100, rsf_prob * 100, deep_prob * 100],
+        mode='markers',
+        marker=dict(size=9, color=['#1D4ED8', '#059669', '#DC2626'], line=dict(width=1.5, color='white')),
+        showlegend=False,
+        hoverinfo='skip'
+    ))
+
+    # Beyaz Arka Plan ve Net Izgara Ayarları
+    fig.update_layout(
+        template="plotly_white",
+        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="#FFFFFF",
+        font=dict(color="#0F172A", size=13),
+        xaxis=dict(
+            title=dict(text=D[lang]["x_axis"], font=dict(size=14, color="#0F172A")),
+            range=[0, 120],
+            dtick=12,
+            showgrid=True,
+            gridcolor="#E2E8F0",
+            linecolor="#94A3B8",
+            tickfont=dict(color="#0F172A")
+        ),
+        yaxis=dict(
+            title=dict(text=D[lang]["y_axis"], font=dict(size=14, color="#0F172A")),
+            range=[0, 102],
+            dtick=10,
+            showgrid=True,
+            gridcolor="#E2E8F0",
+            linecolor="#94A3B8",
+            tickfont=dict(color="#0F172A")
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="left",
+            x=0,
+            bgcolor="rgba(255,255,255,0.9)",
+            bordercolor="#CBD5E1",
+            borderwidth=1,
+            font=dict(size=13, color="#0F172A")
+        ),
+        hovermode="x unified",
+        height=500,
+        margin=dict(l=50, r=30, t=50, b=50)
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
     
     # --- TIBBİ AÇIKLAMA METNİ ---
     st.markdown("---")
@@ -251,6 +365,5 @@ if st.button(D[lang]["btn_lbl"], type="primary"):
     st.warning(f"**{D[lang]['risk_lbl']}:** {risk_durumu}")
     st.write(f"**{D[lang]['summary_lbl']}:** {D[lang]['outcome_txt'].format(median=median_survival_time, month=target_month)} {risk_tavsiyesi}")
     
-    # Rapor Sonu Akademik Uyarı İbaresi
     st.markdown("---")
     st.error(D[lang]["disclaimer"])
